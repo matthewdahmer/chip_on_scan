@@ -341,11 +341,15 @@ def get_acis_limits(states):
     states_acis_dpa_limits = np.zeros(len(states))
     ind_old = states['tstart'] <= DateTime('2019:172:00:00:00').secs
     ind_new = states['tstart'] > DateTime('2019:172:00:00:00').secs
-
     states_acis_dpa_limits[ind_old] = 36.5
     states_acis_dpa_limits[ind_new] = 37.5
 
-    states_acis_dea_limits = np.zeros(len(states)) + 35.5
+    states_acis_dea_limits = np.zeros(len(states))
+    ind_old = states['tstart'] <= DateTime('2019:311:20:00:00').secs
+    ind_new = states['tstart'] > DateTime('2019:311:20:00:00').secs
+    states_acis_dea_limits[ind_old] = 35.5
+    states_acis_dea_limits[ind_new] = 36.5
+    # states_acis_dea_limits = np.zeros(len(states)) + 35.5
 
     states_acis_psmc_limits = np.zeros(len(states)) + 52.5
 
@@ -515,7 +519,7 @@ def run_cases(state_data, modifiable_states_ind, acis_state_limits, cases, times
         psmc_case_results = run_profile(times, schedule, '1pdeaat', model_specs['1pdeaat'], model_init['1pdeaat'])
         fp_case_results = run_profile(times, schedule, 'fptemp', model_specs['fptemp'], model_init['fptemp'])
 
-        # Determine the maxiumum temperatures for this case
+        # Determine the maximum temperatures for this case
         max_dpa = get_max_dwell_mvals(dpa_case_results['1dpamzt'], state_data)
         max_dea = get_max_dwell_mvals(dea_case_results['1deamzt'], state_data)
         max_psmc = get_max_dwell_mvals(psmc_case_results['1pdeaat'], state_data)
@@ -590,8 +594,8 @@ if __name__ == "__main__":
 
     model_init = {'1dpamzt': {'1dpamzt': 20., 'dpa0': 20., 'eclipse': False, 'roll': 0, 'vid_board': True,
                               'clocking': True, 'fep_count': 5, 'ccd_count': 5, 'sim_z': 100000, 'dpa_power': 0.0},
-                  '1deamzt': {'1deamzt': 20., 'eclipse': False, 'roll': 0, 'vid_board': True,'clocking': True,
-                              'fep_count': 5, 'ccd_count': 5, 'sim_z': 100000, 'dpa_power': 0.0},
+                  '1deamzt': {'1deamzt': 20., 'dea0': 20., 'eclipse': False, 'roll': 0, 'vid_board': True,
+                              'clocking': True, 'fep_count': 5, 'ccd_count': 5, 'sim_z': 100000, 'dpa_power': 0.0},
                   '1pdeaat': {'1pdeaat': 30., 'pin1at': 20., 'eclipse': False, 'roll': 0, 'vid_board': True,
                               'clocking': True, 'fep_count': 5, 'ccd_count': 5, 'sim_z': 100000, 'dpa_power': 0.0,
                               'dh_heater':0},
@@ -613,10 +617,13 @@ if __name__ == "__main__":
     case_results, diagnostic_results = run_cases(state_data, modifiable_states_ind, acis_state_limits, cases, times,
                                                  schedule)
 
-    print('The following cases passed: {}'.format(case_results['ok_cases']))
+
+    print('The following cases passed:\n')
+    for c in case_results['ok_cases']:
+        print('Case: {}'.format(c))
 
     timethis2 = DateTime().secs
     print('This took {} seconds for {} cases (2^{})'.format(timethis2 - timethis1, len(cases),
                                                             len(modifiable_states_ind)))
 
-    print(f'State indices: {modifiable_states_ind}')
+    print(f'These are the indices for the states that were modified: {modifiable_states_ind}')
